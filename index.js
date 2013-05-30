@@ -1,9 +1,9 @@
 var docwatch = require(__dirname+"/lib/docwatch");
 
-var numDocs = 500,
+var numDocs = 10000,
   chsPerDoc = 5,
-  numChans = 10,
-  gatewayList = ["http://localhost:4984/db"];
+  numChans = 100,
+  gatewayList = ["http://localhost:4984/sync_gateway"];
 
 var httpAgent = require("http").globalAgent;
 httpAgent.maxSockets = numChans * 10;
@@ -41,20 +41,19 @@ function doTest () {
     if (count < numDocs) {
       count++
       var doc = makeDoc();
-      // console.log("doc", count, doc.channels)
+      console.log("doc", numDocs - count, doc._id, doc.channels)
       runner.watchDoc(doc, doc.channels, docLoop)
     } else {
       runner.doneSaving();
     }
   }
-
+  var start = new Date()
   runner.on("complete", function(stats){
-    console.log("finished", stats)
+    console.log("finished", Math.round((new Date - start) / 1000), stats)
     process.exit()
   })
 
-  docLoop();
+  runner.watchChannels(chans, docLoop)
 }
-
 
 doTest()
